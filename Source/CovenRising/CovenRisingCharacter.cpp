@@ -9,6 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include <CovenRising/Private/InventoryActorComponent.h>
+#include <CovenRising/Private/InteractableInterface.h>
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,13 +51,15 @@ ACovenRisingCharacter::ACovenRisingCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	InventoryComponent = CreateDefaultSubobject<UInventoryActorComponent>(TEXT("Inventory"));
+	AddOwnedComponent(InventoryComponent);
 }
 
 void ACovenRisingCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
+	AddItemToInventory(FName(TEXT("shovel")), 1);
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -64,6 +68,39 @@ void ACovenRisingCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void ACovenRisingCharacter::StopAnimation()
+{
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+}
+
+// Called every frame
+void ACovenRisingCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+}
+
+void ACovenRisingCharacter::PlayAnimation(UAnimSequence* Animation, int Duration)
+{
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+	GetMesh()->PlayAnimation(Animation, false);
+	GetWorld()->GetTimerManager().SetTimer(AnimationTimer, this, &ACovenRisingCharacter::StopAnimation, Duration, false);
+}
+
+void ACovenRisingCharacter::SetHeldItemVisibility(bool Visibility)
+{
+	bIsHeldItemVisible = !Visibility;
+	if (HeldItemActor) {
+		HeldItemActor->SetActorHiddenInGame(!Visibility);
+	}
+}
+
+ABaseItemActor* ACovenRisingCharacter::GetHeldItemActor()
+{
+	return HeldItemActor;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +120,9 @@ void ACovenRisingCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACovenRisingCharacter::Look);
+
+		//Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACovenRisingCharacter::Interact);
 
 	}
 
@@ -121,6 +161,24 @@ void ACovenRisingCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ACovenRisingCharacter::Interact(const FInputActionValue& Value)
+{
+	
+	FVector Location;
+	FRotator Rotation;
+	GetController()->GetPlayerViewPoint(Location, Rotation);
+	FHitResult hit;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(hit, Location, Location + Rotation.Vector() * 1000, ECC_Visibility);
+	if (bHit) {
+		if (hit.GetActor()->Implements<UInteractableInterface>()) {
+			IInteractableInterface* Interactable = Cast<IInteractableInterface>(hit.GetActor());
+			if (Interactable) {
+				IInteractableInterface::Execute_Interact(hit.GetActor(), this);
+			}
+		}
 	}
 }
 
