@@ -111,6 +111,10 @@ void ABucketActor::Interact_Implementation(AActor* InteractingActor)
 				Delegate.BindUFunction(this, "AnimationStarted", WitchCharacter);
 				GetWorld()->GetTimerManager().SetTimer(StartCleaningTimer, Delegate, 1, false);
 			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("PICK UP"));
+				WitchCharacter->AddItemToInventory(FName("bucket"), 1);
+			}
 		}
 	}
 }

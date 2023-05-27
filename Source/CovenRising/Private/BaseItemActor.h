@@ -35,4 +35,12 @@ public:
 	UFUNCTION()
 		UStaticMeshComponent* GetItemMeshComponent();
 
+	UFUNCTION(BlueprintCallable)
+		virtual void OnHeld();
+
+	UFUNCTION(BlueprintCallable)
+		virtual void OnStoppedHolding();
+
+	UFUNCTION()
+		virtual void ConfirmTriggered();
 };

@@ -49,6 +49,11 @@ class ACovenRisingCharacter : public ACharacter
 	/** Scroll Hotbar Slots Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* ScrollHotbarSlotsAction;
+
+	/** Scroll Confirm Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* ConfirmAction;
+
 public:
 	ACovenRisingCharacter();
 	
@@ -63,6 +68,9 @@ protected:
 			
 	/** Called for interact input */
 	void Interact(const FInputActionValue& Value);
+
+	/** Called for confirm input */
+	void Confirm(const FInputActionValue& Value);
 
 
 protected:
@@ -86,7 +94,11 @@ protected:
 	UFUNCTION()
 		void StopAnimation();
 
+	
+
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UDecalComponent* PreviewDecal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		UAnimSequence* DigAnimation;

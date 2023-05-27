@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include <CovenRising/Private/InventoryActorComponent.h>
 #include <CovenRising/Private/InteractableInterface.h>
+#include "Components/DecalComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,6 +54,10 @@ ACovenRisingCharacter::ACovenRisingCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	InventoryComponent = CreateDefaultSubobject<UInventoryActorComponent>(TEXT("Inventory"));
 	AddOwnedComponent(InventoryComponent);
+
+	PreviewDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("Preview Decal"));
+	PreviewDecal->SetupAttachment(RootComponent);
+	PreviewDecal->SetVisibility(false);
 }
 
 void ACovenRisingCharacter::BeginPlay()
@@ -60,6 +65,11 @@ void ACovenRisingCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 	AddItemToInventory(FName(TEXT("shovel")), 1);
+	AddItemToInventory(FName(TEXT("salt_cellar")), 1);
+	AddItemToInventory(FName(TEXT("ritual_altar")), 1);
+	AddItemToInventory(FName(TEXT("candle")), 10);
+	AddItemToInventory(FName(TEXT("skull")), 1);
+	AddItemToInventory(FName(TEXT("brazier")), 1);
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -73,6 +83,8 @@ void ACovenRisingCharacter::BeginPlay()
 void ACovenRisingCharacter::StopAnimation()
 {
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	GetController()->ResetIgnoreMoveInput();
+	GetController()->ResetIgnoreLookInput();
 }
 
 // Called every frame
@@ -80,11 +92,13 @@ void ACovenRisingCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
 }
 
 void ACovenRisingCharacter::PlayAnimation(UAnimSequence* Animation, int Duration)
 {
+	
+	GetController()->SetIgnoreMoveInput(true);
+	GetController()->SetIgnoreLookInput(true);
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 	GetMesh()->PlayAnimation(Animation, false);
 	GetWorld()->GetTimerManager().SetTimer(AnimationTimer, this, &ACovenRisingCharacter::StopAnimation, Duration, false);
@@ -124,6 +138,8 @@ void ACovenRisingCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		//Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACovenRisingCharacter::Interact);
 
+		//Confirm
+		EnhancedInputComponent->BindAction(ConfirmAction, ETriggerEvent::Triggered, this, &ACovenRisingCharacter::Confirm);
 	}
 
 }
@@ -179,6 +195,13 @@ void ACovenRisingCharacter::Interact(const FInputActionValue& Value)
 				IInteractableInterface::Execute_Interact(hit.GetActor(), this);
 			}
 		}
+	}
+}
+
+void ACovenRisingCharacter::Confirm(const FInputActionValue& Value)
+{
+	if (HeldItemActor) {
+		HeldItemActor->ConfirmTriggered();
 	}
 }
 

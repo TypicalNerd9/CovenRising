@@ -7,3 +7,8 @@ UItemData* UCovenRisingGameInstance::GetItemDataAsset()
 {
 	return ItemDataAsset;
 }
+
+URitualData* UCovenRisingGameInstance::GetRitualDataAsset()
+{
+	return RitualDataAsset;
+}

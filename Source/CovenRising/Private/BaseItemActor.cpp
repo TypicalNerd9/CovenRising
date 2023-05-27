@@ -37,3 +37,15 @@ UStaticMeshComponent* ABaseItemActor::GetItemMeshComponent()
 	return ItemMeshComponent;
 }
 
+void ABaseItemActor::OnHeld()
+{
+}
+
+void ABaseItemActor::OnStoppedHolding()
+{
+}
+
+void ABaseItemActor::ConfirmTriggered()
+{
+}
+

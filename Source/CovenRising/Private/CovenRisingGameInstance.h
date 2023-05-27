@@ -19,7 +19,13 @@ class UCovenRisingGameInstance : public UGameInstance
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
 		class UItemData* ItemDataAsset;
 
+		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rituals")
+			class URitualData* RitualDataAsset;
+
 	public:
 		UFUNCTION(BlueprintCallable)
 		UItemData* GetItemDataAsset();
+
+		UFUNCTION(BlueprintCallable)
+			URitualData* GetRitualDataAsset();
 };
